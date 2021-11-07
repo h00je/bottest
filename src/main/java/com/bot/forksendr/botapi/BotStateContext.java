@@ -4,6 +4,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,12 +18,14 @@ public class BotStateContext {
         messageHandlers.forEach(handler -> this.messageHandlers.put(handler.getHandlerName(), handler));
     }
 
-    public SendMessage processInputMessage(BotState currentState, Message message) {
+    public SendMessage processInputMessage(BotState currentState, Message message) throws NullPointerException, FileNotFoundException {
+
         InputMessageHandler currentMessageHandler = findMessageHandler(currentState);
+
         return currentMessageHandler.handle(message);
     }
 
-    private InputMessageHandler findMessageHandler(BotState currentState) {
+    private InputMessageHandler findMessageHandler (BotState currentState) throws NullPointerException {
         if (isFillingProfileState(currentState)) {
             return messageHandlers.get(BotState.FILLING_PROFILE);
         }
@@ -34,12 +38,11 @@ public class BotStateContext {
             case ASK_NAME:
             case ASK_SURNAME:
             case ASK_AGE:
-            case ASK_GENDER:
-            case FILLING_PROFILE:
-            case PROFILE_FILLED:
-            case MYINFO:
             case ERROR_AGE:
-
+            case ASK_GENDER:
+            case ASK_CONTACT:
+            case PROFILE_FILLED:
+            case FILLING_PROFILE:
                 return true;
             default:
                 return false;

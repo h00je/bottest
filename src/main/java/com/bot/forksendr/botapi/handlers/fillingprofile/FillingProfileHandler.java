@@ -3,14 +3,19 @@ package com.bot.forksendr.botapi.handlers.fillingprofile;
 import com.bot.forksendr.botapi.BotState;
 import com.bot.forksendr.botapi.InputMessageHandler;
 import com.bot.forksendr.cache.UserDataCache;
+import com.bot.forksendr.model.UserProfileData;
 import com.bot.forksendr.servise.ReplyMessagesService;
+import com.bot.forksendr.servise.UsersProfileDataService;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Contact;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardButton;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,11 +29,14 @@ import java.util.List;
 public class  FillingProfileHandler implements InputMessageHandler {
     private UserDataCache userDataCache;
     private ReplyMessagesService messagesService;
+    private UsersProfileDataService profileDataService;
 
     public FillingProfileHandler(UserDataCache userDataCache,
-                                 ReplyMessagesService messagesService) {
+                                 ReplyMessagesService messagesService,
+                                 UsersProfileDataService profileDataService) {
         this.userDataCache = userDataCache;
         this.messagesService = messagesService;
+        this.profileDataService = profileDataService;
     }
 
     @Override
@@ -47,6 +55,7 @@ public class  FillingProfileHandler implements InputMessageHandler {
 
     private SendMessage processUsersInput(Message inputMsg) {
         String usersAnswer = inputMsg.getText();
+        String userUsername = inputMsg.getFrom().getUserName();
         int userId = inputMsg.getFrom().getId();
         long chatId = inputMsg.getChatId();
 
@@ -58,9 +67,12 @@ public class  FillingProfileHandler implements InputMessageHandler {
         if (botState.equals(BotState.ASK_NAME)) {
             replyToUser = messagesService.getReplyMessage(chatId, "reply.askName");
             userDataCache.setUsersCurrentBotState(userId, BotState.ASK_SURNAME);
+
         }
+
         if (botState.equals(BotState.ASK_SURNAME)) {
             profileData.setName(usersAnswer);
+            profileData.setUserName(userUsername);
             replyToUser = messagesService.getReplyMessage(chatId, "reply.askSurname");
             userDataCache.setUsersCurrentBotState(userId, BotState.ASK_AGE);
         }
@@ -73,61 +85,40 @@ public class  FillingProfileHandler implements InputMessageHandler {
         }
         if (botState.equals(BotState.ERROR_AGE)){
             replyToUser = messagesService.getReplyMessage(chatId,"reply.badNumber");
-            userDataCache.setUsersCurrentBotState(userId, BotState.ASK_AGE);
+            userDataCache.setUsersCurrentBotState(userId, BotState.ASK_GENDER);
 
         }
 
         if (botState.equals(BotState.ASK_GENDER)) {
-            int age = 0;
-            try {
-                age = Integer.parseInt(usersAnswer);
-            } catch (NumberFormatException exp) {
+          try {
+                profileData.setAge(Integer.parseInt(usersAnswer));
+                } catch (NumberFormatException exp) {
                 userDataCache.setUsersCurrentBotState(userId, BotState.ERROR_AGE);
             }
-            profileData.setAge(age);
-            //profileData.setAge(Integer.parseInt(usersAnswer));
+            profileData.setAge(Integer.parseInt(usersAnswer));
+
             replyToUser = messagesService.getReplyMessage(chatId, "reply.askGender");
             replyToUser.setReplyMarkup((getGenderButtonsMarkup()));
-            //userDataCache.setUsersCurrentBotState(userId, BotState.PROFILE_FILLED);
+
         }
 
-//        if (botState.equals(BotState.ASK_NUMBER)) {
-//            replyToUser = messagesService.getReplyMessage(chatId, "reply.askNumber");
-//            profileData.setGender(usersAnswer);
-//            userDataCache.setUsersCurrentBotState(userId, BotState.ASK_COLOR);
-//        }
-//
-//        if (botState.equals(BotState.ASK_COLOR)) {
-//            replyToUser = messagesService.getReplyMessage(chatId, "reply.askColor");
-//            profileData.setNumber(Integer.parseInt(usersAnswer));
-//            userDataCache.setUsersCurrentBotState(userId, BotState.ASK_MOVIE);
-//        }
-//
-//        if (botState.equals(BotState.ASK_MOVIE)) {
-//            replyToUser = messagesService.getReplyMessage(chatId, "reply.askMovie");
-//            profileData.setColor(usersAnswer);
-//            userDataCache.setUsersCurrentBotState(userId, BotState.ASK_SONG);
-//        }
-//
-//        if (botState.equals(BotState.ASK_SONG)) {
-//            replyToUser = messagesService.getReplyMessage(chatId, "reply.askSong");
-//            profileData.setMovie(usersAnswer);
-//            userDataCache.setUsersCurrentBotState(userId, BotState.PROFILE_FILLED);
-//        }
-//
+        if (botState.equals(BotState.ASK_CONTACT)) {
+            profileData.setChatId(chatId);
+            profileData.setContact(usersAnswer);
+
+            profileDataService.saveUserProfileData(profileData);
+
+            replyToUser = messagesService.getReplyMessage(chatId, "reply.forMetodical");
+            userDataCache.setUsersCurrentBotState(userId, BotState.SHOW_METODICAL_MATERIAL);
+
+        }
+
         if (botState.equals(BotState.PROFILE_FILLED)) {
 
             replyToUser = messagesService.getReplyMessage(chatId, "reply.profileFilled");
-            userDataCache.setUsersCurrentBotState(userId, BotState.SHOW_MAIN_MENU);
-
-
-        }
-
-        if (botState.equals(BotState.MYINFO)) {
-            replyToUser = messagesService.getReplyMessage(chatId, "reply.myInfo");
+            userDataCache.setUsersCurrentBotState(userId, BotState.SHOW_METODICAL_MATERIAL);
 
         }
-
         userDataCache.saveUserProfileData(userId, profileData);
 
         return replyToUser;

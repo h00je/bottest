@@ -1,7 +1,7 @@
 package com.bot.forksendr.cache;
 
 import com.bot.forksendr.botapi.BotState;
-import com.bot.forksendr.botapi.handlers.fillingprofile.UserProfileData;
+import com.bot.forksendr.model.UserProfileData;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;

@@ -4,19 +4,23 @@ package com.bot.forksendr.botapi;
  */
 
 public enum BotState {
+    START_MENU_BOT,
     ASK_DESTINY,
     ASK_NAME,
     ASK_AGE,
     ASK_SURNAME,
     ASK_GENDER,
+    ASK_CONTACT,
     FILLING_PROFILE,
     PROFILE_FILLED,
     SHOW_MAIN_MENU,
     SHOW_HELP_MENU,
     SHOW_USER_PROFILE,
-    MYINFO,
+    MY_INFO,
     MY_CONTACT,
     SHOW_RESULT_OF_WORK,
     ERROR_AGE,
-    KEYBOARD_CREATE;
+    SHOW_METODICAL_MATERIAL,
+    KEYBOARD_CREATE,
+    ADMIN_MENU;
 }

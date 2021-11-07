@@ -12,6 +12,7 @@ import java.util.List;
 @Service
 public class MainMenuService {
 
+
     public SendMessage getMainMenuMessage(final long chatId, final String textMessage) {
         final ReplyKeyboardMarkup replyKeyboardMarkup = getMainMenuKeyboard();
         final SendMessage mainMenuMessage =
@@ -31,13 +32,18 @@ public class MainMenuService {
 
         KeyboardRow row1 = new KeyboardRow();
         KeyboardRow row2 = new KeyboardRow();
-        KeyboardRow row3 = new KeyboardRow();
-        row1.add(new KeyboardButton("Связаться со мной"));
+        //KeyboardRow row3 = new KeyboardRow();
+
+
+        //row1.add(new KeyboardButton().setText("Nomer").setRequestContact(true));
+        row1.add(new KeyboardButton("Результаты работы"));
+        row1.add(new KeyboardButton("Рассказать о себе"));
+        row2.add(new KeyboardButton("Контактные данные"));
         row2.add(new KeyboardButton("Моя анкета"));
-        row2.add(new KeyboardButton("Посмотреть результаты моих подопечных"));
+
         keyboard.add(row1);
         keyboard.add(row2);
-        keyboard.add(row3);
+
         replyKeyboardMarkup.setKeyboard(keyboard);
         return replyKeyboardMarkup;
     }
